@@ -108,7 +108,7 @@ installed, the only way to connect to the servers is via SSH over the
 local network, so the *Admin Workstation* needs to be directly connected.
 Once it is installed, SSH will be available remotely (as an
 authenticated Tor Hidden Servce) and you will not necessarily need to
-connect the *Admin Workstation* directly to adminster the servers -
+connect the *Admin Workstation* directly to administer the servers -
 although you will still need to connect it directly to administer the
 network firewall. Since there isn't another NIC to connect the Admin
 Workstation to, we recommend using a small switch on the LAN (the
