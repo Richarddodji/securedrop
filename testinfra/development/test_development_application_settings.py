@@ -95,29 +95,23 @@ def test_development_app_directories_exist(File):
     assert f.user == sd_test_vars.securedrop_user
     assert f.group == sd_test_vars.securedrop_user
 
-  # Vagrant VirtualBox environments show /vagrant as 770,
-  # but the Vagrant DigitalOcean droplet shows /vagrant as 775.
-  # This appears to be a side-effect of the default umask
-  # in the snapci instances. (The rsync provisioner for the
-  # vagrant-digitalocean plugin preserves permissions from the host.)
-  # The spectests for 'staging' still check for an explicit mode,
-  # so it's OK to relax this test for now.
-  #it { should be_mode '700' }
-  # TODO: should be 700 in all environments; ansible task is
-  # straightforward about this.
-
 
 def test_development_clean_tmp_cron_job(Command, Sudo):
     """
-    Ensure cron job for cleaning the temporary directory for the app code exists.
+    Ensure cron job for cleaning the temporary directory for the app code
+    exists. Also, ensure that the older format for the cron job is absent,
+    since we updated manage.py subcommands to use hyphens instead of
+    underscores (e.g. `clean_tmp` -> `clean-tmp`).
     """
 
     with Sudo():
         c = Command.check_output('crontab -l')
-    # TODO: this should be using property, but the ansible role
-    # doesn't use a var, it's hard-coded. update ansible, then fix test.
-    # it { should have_entry "@daily #{property['securedrop_code']}/manage.py clean-tmp" }
     assert "@daily {}/manage.py clean-tmp".format(sd_test_vars.securedrop_code) in c
+    assert "@daily {}/manage.py clean_tmp".format(sd_test_vars.securedrop_code) not in c
+    assert "clean_tmp".format(sd_test_vars.securedrop_code) not in c
+    # Make sure that the only cron lines are a comment and the actual job.
+    # We don't want any duplicates.
+    assert len(c.split("\n")) == 2
 
 
 def test_development_default_logo_exists(File):

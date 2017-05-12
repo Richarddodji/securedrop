@@ -24,40 +24,22 @@ def get_target_roles(target_host):
     """
     Assemble list of role tests to run. Hard-coded per host.
     """
-    if target_host == "development":
-        target_roles = [
-                'testinfra/app-code',
-                'testinfra/development',
-                ]
+    target_roles = {"development": ['testinfra/app-code',
+                                    'testinfra/development'],
+                    "app-staging": ['testinfra/app',
+                                    'testinfra/app-code',
+                                    'testinfra/common',
+                                    'testinfra/development/test_xvfb.py'],
+                    "mon-staging": ['testinfra/mon',
+                                    'testinfra/common'],
+                    "mon-prod":    ['testinfra/mon'],
+                    "build":       ['testinfra/build']}
 
-    elif target_host == "app-staging":
-        target_roles = [
-                'testinfra/app',
-                'testinfra/app-code',
-                'testinfra/common',
-                'testinfra/development/test_xvfb.py',
-                ]
-
-    elif target_host == "mon-staging":
-        target_roles = [
-                'testinfra/mon',
-                'testinfra/common',
-                ]
-
-    elif target_host == "mon-prod":
-        target_roles = [
-                'testinfra/mon',
-                ]
-
-    elif target_host == "build":
-        target_roles = [
-                'testinfra/build',
-                ]
-    else:
+    try:
+        return target_roles[target_host]
+    except KeyError:
         print("Unknown host '{}'! Exiting.".format(target_host))
         sys.exit(1)
-
-    return target_roles
 
 
 def run_testinfra(target_host, verbose=True):
@@ -99,10 +81,28 @@ testinfra \
     {target_roles}
 """.lstrip().rstrip()
 
-    elif os.environ.get("TRAVIS", 'false') == 'true':
-        os.environ['SECUREDROP_TESTINFRA_TARGET_HOST'] = "travis"
-        ssh_config_path = ""
-        testinfra_command_template = "testinfra -vv {target_roles}"
+    elif os.environ.get("FPF_CI", 'false') == 'true':
+        if os.environ.get("CI_SD_ENV","development") == "development":
+            os.environ['SECUREDROP_TESTINFRA_TARGET_HOST'] = "travis"
+            ssh_config_path = ""
+            testinfra_command_template = "testinfra -vv {target_roles}"
+        else:
+            ssh_config_path = "{}/.ssh/sshconfig-securedrop-ci-{}".format(
+                                            os.environ["HOME"],
+                                            os.environ["BUILD_NUM"])
+            testinfra_command_template = """
+testinfra \
+    -vv \
+    -n 8 \
+    --connection ssh \
+    --ssh-config \
+    {ssh_config_path}\
+    --junit-xml=./{target_host}-results.xml\
+    --junit-prefix={target_host}\
+    --hosts {target_host} \
+    {target_roles}
+""".lstrip().rstrip()
+
     else:
         ssh_config_path = ""
         testinfra_command_template = """

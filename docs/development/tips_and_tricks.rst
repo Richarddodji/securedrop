@@ -35,6 +35,27 @@ exception to allow Tor Browser to access localhost:
 You should now be able to access the development server in the Tor
 Browser by navigating to ``127.0.0.1:8080`` and ``127.0.0.1:8081``.
 
+.. _updating_pip_dependencies:
+
+Upgrading or Adding Python Dependencies
+---------------------------------------
+
+We use a `pip-compile <http://nvie.com/posts/better-package-management/>`_
+based workflow for adding Python dependencies. If you would like to add a Python
+dependency, instead of editing the ``securedrop/requirements/*.txt`` files
+directly, please:
+
+  #. Edit the relevant ``*.in`` file in ``securedrop/requirements/``
+  #. Use the following shell script to generate
+     ``securedrop/requirements/*.txt`` files:
+
+     .. code:: sh
+
+        ./pip_update.sh
+
+  #. Commit both the ``securedrop/requirements/*.in`` and
+     ``securedrop/requirements/*.txt`` files
+
 .. _ssh_over_tor:
 
 Connecting to VMs via SSH over Tor

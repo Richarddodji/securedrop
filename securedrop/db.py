@@ -77,8 +77,6 @@ class Source(Base):
     flagged = Column(Boolean, default=False)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
     star = relationship("SourceStar", uselist=False, backref="source")
-    journalist_id = Column(Integer, ForeignKey('journalists.id'))
-    journalist = relationship("Journalist", backref="assigned")
 
     # sources are "pending" and don't get displayed to journalists until they
     # submit something
@@ -224,6 +222,10 @@ class InvalidPasswordLength(Exception):
     def __str__(self):
         if self.pw_len > Journalist.MAX_PASSWORD_LEN:
             return "Password too long (len={})".format(self.pw_len)
+        if self.pw_len < Journalist.MIN_PASSWORD_LEN:
+            return "Password needs to be at least {} characters".format(
+                Journalist.MIN_PASSWORD_LEN
+            )
 
 
 class Journalist(Base):
@@ -268,10 +270,17 @@ class Journalist(Base):
         return scrypt.hash(str(password), salt, **params)
 
     MAX_PASSWORD_LEN = 128
+    MIN_PASSWORD_LEN = 12
 
     def set_password(self, password):
+        # Don't do anything if user's password hasn't changed.
+        if self.pw_hash and self.valid_password(password):
+            return
         # Enforce a reasonable maximum length for passwords to avoid DoS
         if len(password) > self.MAX_PASSWORD_LEN:
+            raise InvalidPasswordLength(password)
+        # Enforce a reasonable minimum length for new passwords
+        if len(password) < self.MIN_PASSWORD_LEN:
             raise InvalidPasswordLength(password)
         self.pw_salt = self._gen_salt()
         self.pw_hash = self._scrypt_hash(password, self.pw_salt)
@@ -280,6 +289,8 @@ class Journalist(Base):
         # Avoid hashing passwords that are over the maximum length
         if len(password) > self.MAX_PASSWORD_LEN:
             raise InvalidPasswordLength(password)
+        # No check on minimum password length here because some passwords
+        # may have been set prior to setting the minimum password length.
         return self._scrypt_hash(password, self.pw_salt) == self.pw_hash
 
     def regenerate_totp_shared_secret(self):

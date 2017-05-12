@@ -186,8 +186,9 @@ def admin_add_user():
                 db_session.commit()
             except InvalidPasswordLength:
                 form_valid = False
-                flash("Your password is too long (maximum length {} characters)".format(
-                        Journalist.MAX_PASSWORD_LEN), "error")
+                flash("Your password must be between {} and {} characters.".format(
+                        Journalist.MIN_PASSWORD_LEN, Journalist.MAX_PASSWORD_LEN
+                    ), "error")
             except IntegrityError as e:
                 form_valid = False
                 if "username is not unique" in str(e):
@@ -247,40 +248,68 @@ def admin_reset_two_factor_hotp():
         return render_template('admin_edit_hotp_secret.html', uid=uid)
 
 
+class PasswordMismatchError(Exception):
+    pass
+
+
+def edit_account_password(user, password, password_again):
+    if password:
+        if password != password_again:
+            flash("Passwords didn't match!", "error")
+            raise PasswordMismatchError
+        try:
+            user.set_password(password)
+        except InvalidPasswordLength:
+            flash("Your password must be between {} and {} characters.".format(
+                    Journalist.MIN_PASSWORD_LEN, Journalist.MAX_PASSWORD_LEN
+                ), "error")
+            raise
+
+
+def commit_account_changes(user):
+    if db_session.is_modified(user):
+        try:
+            db_session.add(user)
+            db_session.commit()
+        except Exception as e:
+            flash("An unexpected error occurred! Please check the application "
+                  "logs or inform your adminstrator.", "error")
+            app.logger.error("Account changes for '{}' failed: {}".format(user,
+                                                                          e))
+            db_session.rollback()
+        else:
+            flash("Account successfully updated!", "success")
+
+
 @app.route('/admin/edit/<int:user_id>', methods=('GET', 'POST'))
 @admin_required
 def admin_edit_user(user_id):
     user = Journalist.query.get(user_id)
 
     if request.method == 'POST':
-        if request.form['username'] != "":
+        if request.form['username']:
             new_username = request.form['username']
-            if Journalist.query.filter_by(username=new_username).one_or_none():
-                flash("Username {} is already taken".format(new_username),
+            if new_username == user.username:
+                pass
+            elif Journalist.query.filter_by(
+                username=new_username).one_or_none():
+                flash('Username "{}" is already taken!'.format(new_username),
                       "error")
+                return redirect(url_for("admin_edit_user", user_id=user_id))
             else:
                 user.username = new_username
 
-        if request.form['password'] != "":
-            if request.form['password'] != request.form['password_again']:
-                flash("Passwords didn't match", "error")
-                return redirect(url_for("admin_edit_user", user_id=user_id))
-            try:
-                user.set_password(request.form['password'])
-                flash("Password successfully changed for user {} ".format(
-                    user.username), "notification")
-            except InvalidPasswordLength:
-                flash("Your password is too long "
-                      "(maximum length {} characters)".format(
-                      Journalist.MAX_PASSWORD_LEN), "error")
-                return redirect(url_for("admin_edit_user", user_id=user_id))
+        try:
+            edit_account_password(user, request.form['password'],
+                                  request.form['password_again'])
+        except (PasswordMismatchError, InvalidPasswordLength):
+            return redirect(url_for("admin_edit_user", user_id=user_id))
 
         user.is_admin = bool(request.form.get('is_admin'))
 
-        db_session.add(user)
-        db_session.commit()
+        commit_account_changes(user)
 
-    return render_template("admin_edit_user.html", user=user)
+    return render_template("edit_account.html", user=user)
 
 
 @app.route('/admin/delete/<int:user_id>', methods=('POST',))
@@ -306,31 +335,14 @@ def edit_account():
     user = g.user
 
     if request.method == 'POST':
-        if request.form['password'] != "":
-            if request.form['password'] != request.form['password_again']:
-                flash("Passwords didn't match", "error")
-                return redirect(url_for("edit_account"))
-            try:
-                user.set_password(request.form['password'])
-            except InvalidPasswordLength:
-                flash("Your password is too long "
-                      "(maximum length {} characters)".format(
-                      Journalist.MAX_PASSWORD_LEN), "error")
-                return redirect(url_for("edit_account"))
-
         try:
-            db_session.add(user)
-            db_session.commit()
-            flash(
-                "Password successfully changed!",
-                "notification")
-        except Exception as e:
-            flash(
-                "An unknown error occurred, please inform your administrator",
-                "error")
-            app.logger.error("Password change for '{}' failed: {}".format(
-                user, e))
-            db_session.rollback()
+            edit_account_password(user, request.form['password'],
+                                  request.form['password_again'])
+        except (PasswordMismatchError, InvalidPasswordLength):
+            return redirect(url_for('edit_account'))
+
+        commit_account_changes(user)
+
     return render_template('edit_account.html')
 
 
@@ -431,27 +443,8 @@ def index():
             Submission.query.filter_by(source_id=source.id,
                                        downloaded=False).all())
 
-    journalists = Journalist.query.order_by(Journalist.username).all()
+    return render_template('index.html', unstarred=unstarred, starred=starred)
 
-    return render_template('index.html', unstarred=unstarred, starred=starred, journalists=journalists)
-
-@app.route('/change-assignment/<sid>', methods=('POST',))
-@login_required
-def change_assignment(sid):
-    source = get_source(sid)
-
-    if request.form["journalist"] == "none":
-        source.journalist = None
-        db_session.commit()
-        return redirect(url_for('index'))
-
-    journalist_query = Journalist.query.filter(Journalist.username == request.form["journalist"])
-    journalist = get_one_or_else(journalist_query, app.logger, abort)
-
-    source.journalist = journalist
-    db_session.commit()
-
-    return redirect(url_for('index'))
 
 @app.route('/col/<sid>')
 @login_required

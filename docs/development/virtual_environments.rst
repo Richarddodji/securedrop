@@ -30,8 +30,6 @@ app-staging
     - ``app-journalist-aths``
     - ``app-ssh-aths``
 
-    The AppArmor profiles run complain mode to aid in debugging.
-
     Forwarded ports:
 
     -  Source Interface: localhost:8082
@@ -77,7 +75,7 @@ mon-prod
     :ref:`ssh_over_tor` for more info.
 
 If you plan to alter the configuration of any of these machines, make sure to
-review the :doc:`Development Guide for Configuration Tests <config_tests>`.
+review the :ref:`config_tests` documentation.
 
 Development
 -----------
@@ -119,8 +117,12 @@ If you want to receive OSSEC alerts or change any other settings, you will need
 to fill out your local copy of
 ``./install_files/ansible-base/staging-specific.yml``.
 
+You should first bring up the VM required for building the app code
+Debian packages on the staging machines:
+
 .. code:: sh
 
+   vagrant up --no-provision build
    vagrant up /staging/
    vagrant ssh app-staging
    sudo su
@@ -134,12 +136,6 @@ To rebuild the local packages for the app code: ::
 
 The Debian packages will be rebuilt from the current state of your
 local git repository and then installed on the staging servers.
-
-.. tip::
-    You will also need to build the OSSEC packages in a separate repo.
-    Clone the ossec repo from https://github.com/freedomofpress/ossec and run
-    ``vagrant up``, then copy the deb packages into the ``build/``
-    directory in the securedrop repo.
 
 Prod
 ----

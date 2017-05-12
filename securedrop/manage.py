@@ -79,6 +79,12 @@ def _add_user(is_admin=False): # pragma: no cover
                   'password.'.format(Journalist.MAX_PASSWORD_LEN))
             continue
 
+        if len(password) < Journalist.MIN_PASSWORD_LEN:
+            print('Error: Password needs to be at least {} characters.'.format(
+                Journalist.MIN_PASSWORD_LEN
+            ))
+            continue
+
         if password == password_again:
             break
         print("Passwords didn't match!")
@@ -159,9 +165,9 @@ def delete_user(): # pragma: no cover
             selected_user = Journalist.query.filter_by(username=username).one()
         except NoResultFound:
             pass
-        else: 
+        else:
             raise
-        
+
     print('User "{}" successfully deleted'.format(username))
     return 0
 
@@ -218,12 +224,18 @@ def get_args():
     admin_subp = subps.add_parser('add-admin', help='Add an admin to the '
                                   'application.')
     admin_subp.set_defaults(func=add_admin)
+    admin_subp_a = subps.add_parser('add_admin', help='^')
+    admin_subp_a.set_defaults(func=add_admin)
     journalist_subp = subps.add_parser('add-journalist', help='Add a '
                                        'journalist to the application.')
     journalist_subp.set_defaults(func=add_journalist)
+    journalist_subp_a = subps.add_parser('add_journalist', help='^')
+    journalist_subp_a.set_defaults(func=add_journalist)
     delete_user_subp = subps.add_parser('delete-user', help='Delete a user '
                                         'from the application.')
     delete_user_subp.set_defaults(func=delete_user)
+    delete_user_subp_a = subps.add_parser('delete_user', help='^')
+    delete_user_subp_a.set_defaults(func=delete_user)
 
     # Reset application state
     reset_subp = subps.add_parser('reset', help='DANGER!!! Clears the '
@@ -233,6 +245,8 @@ def get_args():
     clean_tmp_subp = subps.add_parser('clean-tmp', help='Cleanup the '
                                       'SecureDrop temp directory.')
     clean_tmp_subp.set_defaults(func=clean_tmp)
+    clean_tmp_subp_a = subps.add_parser('clean_tmp', help='^')
+    clean_tmp_subp_a.set_defaults(func=clean_tmp)
 
     return parser
 

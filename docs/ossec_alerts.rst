@@ -7,9 +7,9 @@ Setting up OSSEC alerts
 OSSEC is an open source host-based intrusion detection system (IDS) that
 we use to perform log analysis, file integrity checking, policy
 monitoring, rootkit detection and real-time alerting. It is installed on
-the Monitor Server and constitutes that machine's main function. OSSEC
+the *Monitor Server* and constitutes that machine's main function. OSSEC
 works in a server-agent scheme, that is, the OSSEC server extends its
-existing functions to the App Server through an agent installed on that
+existing functions to the *Application Server* through an agent installed on that
 server, covering monitoring for both machines.
 
 In order to receive email alerts from OSSEC, you need to supply several
@@ -77,11 +77,11 @@ different from the ``sasl_domain``, e.g. smtp.gmail.com and gmail.com.
 
 In some cases, authentication or transport encryption mechanisms will
 vary and you may require later edits to the Postfix configuration
-(mainly /etc/postfix/main.cf) on the Monitor Server in order to get
+(mainly /etc/postfix/main.cf) on the *Monitor Server* in order to get
 alerts to work. You can consult `Postfix's official
 documentation <http://www.postfix.org/documentation.html>`__ for help,
-although we've described some common scenarios in the
-:ref:`troubleshooting section <Troubleshooting>` of this document.
+although we've described some common scenarios in the 
+:ref:`troubleshooting section <troubleshooting_ossec>` of this document.
 
 If you have your GPG public key handy, copy it to
 install\_files/ansible-base and then specify the filename in the
@@ -239,7 +239,7 @@ playbooks.) Save ``prod-specific.yml``, exit the editor and :ref:`proceed
 with the installation <Run the Ansible playbook>` by running the
 playbooks.
 
-.. _Troubleshooting:
+.. _troubleshooting_ossec:
 
 Troubleshooting
 ---------------
@@ -314,11 +314,35 @@ Other log files that may contain useful information:
          security-related information about your organization's
          SecureDrop instance.
 
+Not receiving emails
+~~~~~~~~~~~~~~~~~~~~
+Some mail servers require that the sending email address match the account
+that authenticated to send mail. By default the *Monitor Server* will use
+``ossec@ossec.server`` for the from line, but your mail provider may not support
+the mismatch between the domain of that value and your real mail host.
+If the Admin email address (configured as ``ossec_alert_email`` in
+``prod-specific.yml``) does not start receiving OSSEC alerts updates shortly
+after the first playbook run, try setting ``ossec_from_address`` in
+``prod-specific.yml`` to the full email address used for sending the alerts,
+then run the playbook again.
+
+Message failed to encrypt
+~~~~~~~~~~~~~~~~~~~~~~~~~
+If OSSEC cannot encrypt the alert to the GPG public key for the Admin
+email address (configured as ``ossec_alert_email`` in ``prod-specific.yml``),
+the system will send a static message instead of the scheduled alert:
+
+  Failed to encrypt OSSEC alert. Investigate the mailing configuration on the Monitor Server.
+
+Check the GPG configuration vars in ``prod-specific.yml``. In particular,
+make sure the GPG fingerprint matches that of the public key file you
+exported.
+
 Troubleshooting SMTP TLS
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Your choice of SMTP relay server must support STARTTLS and have a valid
-server certificate. By default, the Monitor Server's Postfix
+server certificate. By default, the *Monitor Server*'s Postfix
 configuration will try to validate the server certificate using the
 default root store (in Ubuntu, this is maintained in the
 ``ca-certificates`` package). You can override this by setting
@@ -373,7 +397,7 @@ For example, if I'm testing Gmail as my SMTP relay
 store results in ``Verify return code: 0 (ok)`` because their
 certificate is valid and signed by one of the roots in the default
 store. This indicates that can be successfully used to securely relay
-email in the default configuration of the Monitor Server.
+email in the default configuration of the *Monitor Server*.
 
 If your SMTP relay server does not successfully verify, you should use
 the return code and its text description to help you diagnose the cause.
@@ -462,7 +486,7 @@ particularly concerning messages with direct investigation.
 Common OSSEC Alerts
 ~~~~~~~~~~~~~~~~~~~
 
-The SecureDrop Application and Monitor Servers reboot every night, as part
+The SecureDrop *Application* and *Monitor Servers* reboot every night, as part
 of the unattended upgrades process. When the servers come back up, OSSEC will
 start again and report the change in status. Therefore you should receive an
 email alert every morning containing text similar to: ::

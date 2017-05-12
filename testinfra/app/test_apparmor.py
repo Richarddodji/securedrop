@@ -28,8 +28,8 @@ def test_apparmor_apache_capabilities(Command, cap):
 
 def test_apparmor_apache_exact_capabilities(Command):
     """ ensure no extra capabilities are defined for apache2 """
-    c = Command("grep -ic capability /etc/apparmor.d/usr.sbin.apache2")
-    assert str(len(apache2_capabilities)) == c.stdout
+    c = Command.check_output("grep -ic capability /etc/apparmor.d/usr.sbin.apache2")
+    assert str(len(apache2_capabilities)) == c
 
 tor_capabilities = ['setgid']
 @pytest.mark.parametrize('cap', tor_capabilities)
@@ -40,8 +40,8 @@ def test_apparmor_tor_capabilities(Command, cap):
 
 def test_apparmor_apache_exact_capabilities(Command):
     """ ensure no extra capabilities are defined for tor """
-    c = Command("grep -ic capability /etc/apparmor.d/usr.sbin.tor")
-    assert str(len(tor_capabilities)) == c.stdout
+    c = Command.check_output("grep -ic capability /etc/apparmor.d/usr.sbin.tor")
+    assert str(len(tor_capabilities)) == c
 
 enforced_profiles = [
         'ntpd',
@@ -58,8 +58,7 @@ def test_apparmor_ensure_not_disabled(File, Sudo, profile):
     with Sudo():
         assert not f.exists
 
-@pytest.mark.skipif(os.environ['SECUREDROP_TESTINFRA_TARGET_HOST'] != 'app-staging',
-                    reason='only to be run on app-staging')
+
 @pytest.mark.parametrize('complain_pkg', sdvars.apparmor_complain)
 def test_app_apparmor_complain(Command, Sudo, complain_pkg):
     """ Ensure app-armor profiles are in complain mode for staging """
@@ -68,8 +67,7 @@ def test_app_apparmor_complain(Command, Sudo, complain_pkg):
         c = Command.check_output("aa-status | {}".format(awk))
         assert complain_pkg in c
 
-@pytest.mark.skipif(os.environ['SECUREDROP_TESTINFRA_TARGET_HOST'] != 'app-staging',
-                    reason='only to be run on app-staging')
+
 def test_app_apparmor_complain_count(Command, Sudo):
     """ Ensure right number of app-armor profiles are in complain mode """
     with Sudo():

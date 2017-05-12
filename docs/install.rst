@@ -13,8 +13,8 @@ Tor. Once that's done, you can install Ansible:
 
 .. code:: sh
 
-    $ sudo apt-get update
-    $ sudo apt-get install ansible
+    sudo apt-get update
+    sudo apt-get install ansible
 
 Configure the Installation
 --------------------------
@@ -22,7 +22,7 @@ Configure the Installation
 Make sure you have the following information and files before
 continuing:
 
--  The *App Server* IP address
+-  The *Application Server* IP address
 -  The *Monitor Server* IP address
 -  The SecureDrop Submission Key (from the *Transfer
    Device*)
@@ -45,7 +45,7 @@ continuing:
 From the base of the SecureDrop repo, change into the ``ansible-base``
 directory: ::
 
-    $ cd install_files/ansible-base
+    cd install_files/ansible-base
 
 You will have to copy the following required files to
 ``install_files/ansible-base``:
@@ -59,7 +59,7 @@ Device* from earlier. It will depend on the location where the USB stick
 is mounted, but for example, if you are already in the ansible-base
 directory, you can just run: ::
 
-    $ cp /media/[USB folder]/SecureDrop.asc .
+    cp /media/[USB folder]/SecureDrop.asc .
 
 Or you may use the copy and paste capabilities of the file manager.
 Repeat this step for the Admin GPG key and custom header image.
@@ -76,10 +76,10 @@ match your environment. At a minimum, you will need to provide the
 following:
 
 -  User allowed to connect to both servers with SSH: ``ssh_users``
--  IP address of the Monitor Server: ``monitor_ip``
--  Hostname of the Monitor Server: ``monitor_hostname``
--  Hostname of the Application Server: ``app_hostname``
--  IP address of the Application Server: ``app_ip``
+-  IP address of the *Monitor Server*: ``monitor_ip``
+-  Hostname of the *Monitor Server*: ``monitor_hostname``
+-  Hostname of the *Application Server*: ``app_hostname``
+-  IP address of the *Application Server*: ``app_ip``
 -  The SecureDrop Submission Key public key file:
    ``securedrop_app_gpg_public_key``
 -  The SecureDrop Submission Key fingerprint:
@@ -122,7 +122,7 @@ the servers and install SecureDrop and all of its dependencies.
 installation, and should be the same user you copied the SSH public keys
 to. ::
 
-    $ ansible-playbook -i inventory -u <username> -K --sudo securedrop-prod.yml
+    ansible-playbook -i inventory -u <username> -K --sudo securedrop-prod.yml
 
 You will be prompted to enter the sudo password for the app and monitor
 servers (which should be the same).

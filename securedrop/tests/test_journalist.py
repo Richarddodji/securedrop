@@ -179,16 +179,17 @@ class TestJournalistApp(TestCase):
         resp = self.client.post(
             url_for('admin_edit_user', user_id=self.user.id),
             data=dict(username=self.user.username, is_admin=False,
-                      password='valid', password_again='valid'))
+                      password='validlongpassword',
+                      password_again='validlongpassword'))
 
-        self.assertIn('Password successfully changed', resp.data)
+        self.assertMessageFlashed("Account successfully updated!", 'success')
 
     def test_user_edits_password_success_reponse(self):
         self._login_user()
         resp = self.client.post(url_for('edit_account'),
-                                data=dict(password='valid',
-                                          password_again='valid'))
-        self.assertIn("Password successfully changed", resp.data)
+                                data=dict(password='validlongpassword',
+                                          password_again='validlongpassword'))
+        self.assertMessageFlashed("Account successfully updated!", 'success')
 
     def test_admin_edits_user_password_mismatch_warning(self):
         self._login_admin()
@@ -199,7 +200,7 @@ class TestJournalistApp(TestCase):
                       password='not', password_again='thesame'),
             follow_redirects=True)
 
-        self.assertIn(escape("Passwords didn't match"), resp.data)
+        self.assertMessageFlashed("Passwords didn't match!", "error")
 
     def test_user_edits_password_mismatch_redirect(self):
         self._login_user()
@@ -226,6 +227,14 @@ class TestJournalistApp(TestCase):
                     username="My Password is Too Big!",
                     password=overly_long_password)
 
+    def test_min_password_length(self):
+        """Creating a Journalist with a password that is smaller than the
+        minimum password length should raise an exception"""
+        with self.assertRaises(InvalidPasswordLength):
+            temp_journalist = Journalist(
+                    username="My Password is Too Small!",
+                    password='tiny')
+
     def test_admin_edits_user_password_too_long_warning(self):
         self._login_admin()
         overly_long_password = 'a' * (Journalist.MAX_PASSWORD_LEN + 1)
@@ -237,7 +246,10 @@ class TestJournalistApp(TestCase):
                       password_again=overly_long_password),
             follow_redirects=True)
 
-        self.assertIn('Your password is too long', resp.data)
+        self.assertMessageFlashed('Your password must be between {} and {} '
+                                  'characters.'.format(
+                                      Journalist.MIN_PASSWORD_LEN,
+                                      Journalist.MAX_PASSWORD_LEN), 'error')
 
     def test_user_edits_password_too_long_warning(self):
         self._login_user()
@@ -248,7 +260,10 @@ class TestJournalistApp(TestCase):
                                           password_again=overly_long_password),
                                 follow_redirects=True)
 
-        self.assertIn('Your password is too long', resp.data)
+        self.assertMessageFlashed('Your password must be between {} and {} '
+                                  'characters.'.format(
+                                      Journalist.MIN_PASSWORD_LEN,
+                                      Journalist.MAX_PASSWORD_LEN), 'error')
 
     def test_admin_add_user_password_too_long_warning(self):
         self._login_admin()
@@ -259,7 +274,7 @@ class TestJournalistApp(TestCase):
             data=dict(username='dellsberg', password=overly_long_password,
                       password_again=overly_long_password, is_admin=False))
 
-        self.assertIn('password is too long', resp.data)
+        self.assertIn('Your password must be between', resp.data)
 
     def test_admin_edits_user_invalid_username(self):
         """Test expected error message when admin attempts to change a user's
@@ -272,8 +287,8 @@ class TestJournalistApp(TestCase):
             data=dict(username=new_username, is_admin=False,
                       password='', password_again=''))
 
-        self.assertIn('Username {} is already taken'.format(new_username),
-                      resp.data)
+        self.assertMessageFlashed('Username "{}" is already taken!'.format(
+            new_username), 'error')
 
     def test_admin_resets_user_hotp(self):
         self._login_admin()
@@ -436,14 +451,17 @@ class TestJournalistApp(TestCase):
             password_again=overly_long_password),
             follow_redirects=True)
 
-        self.assertIn('Your password is too long', res.data)
+        self.assertMessageFlashed('Your password must be between {} and {} '
+                                  'characters.'.format(
+                                      Journalist.MIN_PASSWORD_LEN,
+                                      Journalist.MAX_PASSWORD_LEN), 'error')
 
     def test_valid_user_password_change(self):
         self._login_user()
         res = self.client.post(url_for('edit_account'), data=dict(
-            password='valid',
-            password_again='valid'))
-        self.assertIn("Password successfully changed", res.data)
+            password='validlongpassword',
+            password_again='validlongpassword'))
+        self.assertMessageFlashed("Account successfully updated!", 'success')
 
     def test_regenerate_totp(self):
         self._login_user()
@@ -473,21 +491,6 @@ class TestJournalistApp(TestCase):
 
         # should redirect to verification page
         self.assertRedirects(res, url_for('account_new_two_factor'))
-
-    def test_change_assignment(self):
-        source, _ = utils.db_helper.init_source()
-        self._login_user()
-
-        resp = self.client.post(
-            url_for('change_assignment', sid=source.filesystem_id),
-            data=dict(journalist=self.user.username))
-
-        self.assertRedirects(resp, url_for('index'))
-        # Check that source is indeed assigned to self.user.username in the db
-        source_assigned = db_session.query(Source).filter(source.filesystem_id
-                                                          ==
-                                                          source.filesystem_id).one()
-        self.assertEqual(self.user.username, source_assigned.journalist.username)
 
 
     def test_delete_source_deletes_submissions(self):

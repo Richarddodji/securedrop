@@ -15,32 +15,35 @@ To get started editing the docs:
 
    .. code:: sh
 
-      $ pip install sphinx sphinx-autobuild sphinx_rtd_theme
+      pip install -r securedrop/requirements/develop-requirements.txt
 
 #. Clone the SecureDrop repository:
 
    .. code:: sh
 
-      $ git clone https://github.com/freedomofpress/securedrop.git
-      $ cd securedrop/docs
+      git clone https://github.com/freedomofpress/securedrop.git
 
 #. Build the docs and open the index page in your web browser:
 
    .. code:: sh
 
-      $ sphinx-autobuild . _build/html
+      make docs
 
 You can then can browse the documentation at http://127.0.0.1:8000/.
 As you make changes, the docs will automatically rebuild in the browser
 window, so you don't need to refresh the page manually.
 
-Occasionally, the docs get out of whack and rebuilding them doesn't
-work as it should. You can usually resolve this by clearing out the
-build artifacts and re-building the docs from scratch:
+You can also check the docs for formatting violations by running the linting
+option:
 
-.. code:: sh
+   .. code:: sh
 
-   $ make clean && sphinx-autobuild . _build/html
+      make docs-lint
+
+The ``make docs`` command will display warnings, but will still build the
+documentation if formatting mistakes are found. Using ``make docs-lint``
+will convert any warnings to errors, causing the build to fail.
+The CI tests will automatically perform linting via the same command.
 
 Integration with Read the Docs
 ------------------------------
@@ -77,6 +80,28 @@ When SecureDrop-specific :doc:`terminology <../terminology>` is used, *italicize
 Try to keep your lines wrapped to near 80 characters when editing the docs.
 Some exceptions are warranted, such as complex code blocks showing example
 commands, or long URLs, but in general the docs should be tightly wrapped.
+
+When referring to virtual machines in the development environment, use
+lowercase for the name:
+
+    app-staging VM
+
+Ensure that example commands in codeblocks are easily copy/pasteable.
+Do not prepend the ``$`` shell prompt indicator to example commands:
+
+  .. code::
+
+     echo hello
+
+In the context of a terminal session, with both typed commands and printed
+output text, then use ``$``, but only on the typed command lines:
+
+  .. code::
+
+     $ echo hello
+     hello
+     $ echo sunshine
+     sunshine
 
 Use absolute paths when referring to files outside the SecureDrop repository.
 Exceptions made for when it's clear from the surrounding context what the

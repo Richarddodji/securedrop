@@ -81,7 +81,7 @@ Ansible. Using `virtualenvwrapper
     sudo apt-get install virtualenvwrapper
     source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
     mkvirtualenv -p /usr/bin/python2 securedrop
-    pip install -U ansible==1.8.4
+    pip install -r securedrop/requirements/develop-requirements.txt
 
 .. note:: You'll want to add the command to source ``virtualenvwrapper.sh``
           to your ``~/.bashrc`` (or whatever your default shell configuration
@@ -110,7 +110,7 @@ different version, the path to ``virtualenvwrapper.sh`` will differ. Running
     pip install -U virtualenvwrapper
     source /usr/local/bin/virtualenvwrapper.sh
     mkvirtualenv -p python2 securedrop
-    pip install -U ansible==1.8.4
+    pip install -r securedrop/requirements/develop-requirements.txt
 
 .. note:: You'll want to add the command to source ``virtualenvwrapper.sh``
           to your ``~/.bashrc`` (or whatever your default shell configuration
@@ -130,15 +130,3 @@ use git to clone the SecureDrop repo.
 .. code:: sh
 
    git clone https://github.com/freedomofpress/securedrop.git
-
-SecureDrop uses a branching model based on `git-flow
-<http://nvie.com/posts/a-successful-git-branching-model/>`__.  The ``master``
-branch always points to the latest stable release. Use this branch if you are
-interested in installing or auditing SecureDrop.  Development for the upcoming
-release of SecureDrop takes place on ``develop``, which is the default
-branch. If you want to contribute, you should branch from and submit pull
-requests to ``develop``.
-
-.. todo:: The branching model should be documented separately, in a
-	  "Contributing guidelines" document. We are also going to move away
-	  from git-flow soon because it sucks.

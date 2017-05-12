@@ -16,11 +16,20 @@
   tags:
     - postfix
 
+- name: Create mapping for outbound address.
+  copy:
+    content: "ossec@{{ postfix_hostname }} {{ ossec_from_address }}"
+    dest: /etc/postfix/generic
+  notify: update generic_maps
+  when: ossec_from_address != ""
+  tags:
+    - postfix
+
 - name: Configure SASL password for SMTP relay.
   template:
     src: sasl_passwd
     dest: /etc/postfix/sasl_passwd
-    mode: 0400
+    mode: "0400"
   notify: update sasl_passwd db
   tags:
     - postfix

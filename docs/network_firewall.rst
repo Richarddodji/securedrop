@@ -65,8 +65,8 @@ network so it is working correctly.
 
 If your firewall has 4 NICs, as the SG-2440 does, we will refer to the ports as WAN,
 LAN, OPT1, and OPT2. In this case, we can now use a dedicated port on the network
-firewall for each component of SecureDrop (Application Server, Monitor
-Server, and *Admin Workstation*), so you do not need a switch like you do
+firewall for each component of SecureDrop (*Application Server*, *Monitor
+Server*, and *Admin Workstation*), so you do not need a switch like you do
 for the 3-NIC configuration.
 
 Depending on your network configuration, you should define the following
@@ -75,7 +75,7 @@ chosen:
 
 -  Admin Subnet: ``10.20.1.0/24``
 -  Admin Gateway: ``10.20.1.1``
--  *Admin Workstation*: ``10.20.1.2``
+-  Admin Workstation: ``10.20.1.2``
 
 .. raw:: html
 
@@ -91,14 +91,14 @@ chosen:
 
 -  Monitor Subnet: ``10.20.3.0/24``
 -  Monitor Gateway: ``10.20.3.1``
--  Monitor Server (OPT2) : ``10.20.3.2``
+-  *Monitor Server* (OPT2) : ``10.20.3.2``
 
 3 NIC configuration
 ~~~~~~~~~~~~~~~~~~~
 
 If your firewall has 3 NICs, we will refer to them as WAN, LAN, and
 OPT1. WAN is used to connect to the external network. LAN and OPT1 are
-used for the Application and Monitor Servers, respectively. Putting them
+used for the *Application* and *Monitor Servers*, respectively. Putting them
 on separate interfaces allows us to use the network firewall to filter
 and monitor the traffic *between* them.
 
@@ -114,7 +114,7 @@ network firewall. Since there isn't another NIC to connect the Admin
 Workstation to, we recommend using a small switch on the LAN (the
 specific choice of interface doesn't matter, but we recommend using the
 LAN to stay consistent with the rest of this guide) so you can connect
-both the *Admin Workstation* and the Application Server.
+both the *Admin Workstation* and the *Application Server*.
 
 Depending on your network configuration, you should define the following
 values before continuing. For the examples in this guide, we have
@@ -122,7 +122,7 @@ chosen:
 
 -  Admin/Application Gateway: ``10.20.1.1``
 -  Admin/Application Subnet: ``10.20.1.0/24``
--  Application Server: ``10.20.1.2``
+-  *Application Server*: ``10.20.1.2``
 -  *Admin Workstation*: ``10.20.1.3``
 
 .. raw:: html
@@ -131,7 +131,7 @@ chosen:
 
 -  Monitor Subnet: ``10.20.2.0/24``
 -  Monitor Gateway: ``10.20.2.1``
--  Monitor Server: ``10.20.2.2``
+-  *Monitor Server*: ``10.20.2.2``
 
 Initial Configuration
 ---------------------
@@ -270,10 +270,10 @@ SecureDrop uses the firewall to achieve two primary goals:
 #. Isolating SecureDrop from the existing network, which may be
    compromised (especially if it is a venerable network in a large
    organization like a newsroom).
-#. Isolating the app and the monitor servers from each other as much as
+#. Isolating the *Application Server* and the *Monitor Server* from each other as much as
    possible, to reduce attack surface.
 
-In order to use the firewall to isolate the app and monitor servers from
+In order to use the firewall to isolate the *Application Server* and the *Monitor Server* from
 each other, we need to connect them to separate interfaces, and then set
 up firewall rules that allow them to communicate.
 
@@ -301,7 +301,7 @@ WebGUI. Uncheck the box labeled **Enable DHCP server on LAN
 interface**, scroll down, and click the **Save** *and then* click Apply.
 
 Assign a static IP address to the *Admin Workstation*
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now you will need to assign a static IP to the *Admin Workstation*. Use
 the *Admin Workstation* that you selected earlier, and make sure you
@@ -363,8 +363,8 @@ Set up OPT1
 ~~~~~~~~~~~
 
 We set up the LAN interface during the initial configuration. We now
-need to set up the OPT1 interface for the Application Server. Start by
-connecting the Application Server to the OPT1 port. Then use the WebGUI
+need to set up the OPT1 interface for the *Application Server*. Start by
+connecting the *Application Server* to the OPT1 port. Then use the WebGUI
 to configure the OPT1 interface. Go to **Interfaces ▸ OPT1**, and check
 the box to **Enable Interface**. Use these settings:
 
@@ -417,7 +417,7 @@ Here are some general tips for setting up pfSense firewall rules:
    default in pfSense, so you don't need to add explicit rules (iptables
    ``LOGNDROP``) for that.
 #. Since some of the rules are almost identical except for whether they
-   allow traffic from the App Server or the Monitor Server, you can use
+   allow traffic from the *Application Server* or the *Monitor Server*, you can use
    the "add a new rule based on this one" button to save time creating a
    copy of the rule on the other interface.
 #. If you are troubleshooting connectivity, the firewall logs can be

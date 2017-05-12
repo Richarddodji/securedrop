@@ -10,13 +10,24 @@
     - apt
     - apache
 
-- name: Copy Apache configuration and security files.
+- name: Copy Apache configuration file.
   copy:
-    src: "{{ item }}"
-    dest: /etc/apache2/{{ item }}
+    src: apache2.conf
+    dest: /etc/apache2/apache2.conf
     owner: root
-    mode: '0644'
-  with_items: "{{ apache_files }}"
+    mode: "0644"
+  notify:
+    - restart apache2
+  tags:
+    - apache
+
+  # Previous versions of the Ansible config (prior to 0.4) created this
+  # unnecessary file, so let's clean it up.
+- name: Remove deprecated Apache configuration file.
+  file:
+    path: /etc/apache2/security
+    state: absent
+  # Not notifying a handler since the config file was never included.
   tags:
     - apache
 
@@ -25,8 +36,10 @@
     src: "{{ item }}"
     dest: /etc/apache2/{{ item }}
     owner: root
-    mode: '0644'
+    mode: "0644"
   with_items: "{{ apache_templates }}"
+  notify:
+    - restart apache2
   tags:
     - apache
 
@@ -35,6 +48,8 @@
     state: present
     name: "{{ item }}"
   with_items: "{{ apache_modules }}"
+  notify:
+    - restart apache2
   tags:
     - apache
 
@@ -43,6 +58,8 @@
     state: absent
     name: "{{ item }}"
   with_items: "{{ apache_disabled_modules }}"
+  notify:
+    - restart apache2
   tags:
     - apache
     - hardening
@@ -55,6 +72,8 @@
     - 000-default.conf
     - default-ssl.conf
     - default.conf
+  notify:
+    - restart apache2
   tags:
     - apache
     - hardening
@@ -65,6 +84,8 @@
   file:
     state: absent
     dest: /var/www/html
+  notify:
+    - restart apache2
   tags:
     - apache
     - hardening

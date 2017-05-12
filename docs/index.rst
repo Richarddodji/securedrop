@@ -67,6 +67,7 @@ anonymous sources.
    upgrade/0.3.5-to-0.3.6.rst
    upgrade/0.3.6-to-0.3.7.rst
    upgrade_to_tails_2x.rst
+   upgrade_to_tails_3x.rst
 
 .. toctree::
    :caption: Developer Documentation
@@ -75,9 +76,13 @@ anonymous sources.
 
    development/getting_started
    development/virtual_environments
+   development/contributor_guidelines
    development/tips_and_tricks
    development/documentation_guidelines
-   development/config_tests
+   development/testing_securedrop
+   development/testing_application_tests
+   development/testing_configuration_tests
+   development/testing_continuous_integration
    development/apt_repo
    development/apparmor_profiles
    development/threat_model
